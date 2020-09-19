@@ -196,4 +196,4 @@ def test():
     y = net(x)
     print(y.size())
 
-test()
+# test()

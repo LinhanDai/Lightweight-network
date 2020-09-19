@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.init as init
+import time
 from torchvision.models.utils import load_state_dict_from_url
 
 __all__ = ['SqueezeNet', 'squeezenet1_0', 'squeezenet1_1']
@@ -135,3 +136,20 @@ def squeezenet1_1(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _squeezenet('1_1', pretrained, progress, **kwargs)
+
+
+if __name__ == '__main__':
+    x = torch.randn(1, 3, 550, 550).cuda()
+    net = squeezenet1_0(False).cuda()
+    net.eval()
+    total_time = 0
+    for _ in range(500):
+        torch.cuda.synchronize()
+        start = time.time()
+        y = net(x)
+        torch.cuda.synchronize()
+        end = time.time()
+        total_time += (end - start)
+    print("avg time:", (total_time / 500))
+    print(y.shape)
+

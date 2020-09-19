@@ -1,5 +1,4 @@
 '''MobileNetV3 in PyTorch.
-
 See the paper "Inverted Residuals and Linear Bottlenecks:
 Mobile Networks for Classification, Detection and Segmentation" for more details.
 '''
@@ -125,7 +124,8 @@ class MobileNetV3_Large(nn.Module):
         out = self.hs1(self.bn1(self.conv1(x)))
         out = self.bneck(out)
         out = self.hs2(self.bn2(self.conv2(out)))
-        out = F.avg_pool2d(out, 7)
+        batch, channels, height, width = out.size()
+        out = F.avg_pool2d(out, kernel_size=[height, width])
         out = out.view(out.size(0), -1)
         out = self.hs3(self.bn3(self.linear3(out)))
         out = self.linear4(out)
@@ -182,18 +182,26 @@ class MobileNetV3_Small(nn.Module):
         out = self.hs1(self.bn1(self.conv1(x)))
         out = self.bneck(out)
         out = self.hs2(self.bn2(self.conv2(out)))
-        out = F.avg_pool2d(out, 7)
+        batch, channels, height, width = out.size()
+        out = F.avg_pool2d(out, kernel_size=[height, width])
         out = out.view(out.size(0), -1)
         out = self.hs3(self.bn3(self.linear3(out)))
         out = self.linear4(out)
         return out
 
 
-
-def test():
-    net = MobileNetV3_Small()
-    x = torch.randn(2,3,224,224)
-    y = net(x)
-    print(y.size())
-
-test()
+import time
+if __name__ == '__main__':
+    net = MobileNetV3_Large().cuda()
+    net.eval()
+    total_time = 0
+    x = torch.randn(1, 3, 1500, 1500).cuda()
+    for _ in range(500):
+        torch.cuda.synchronize()
+        start = time.time()
+        y = net(x)
+        torch.cuda.synchronize()
+        end = time.time()
+        total_time += (end - start)
+    print("avg time:", total_time / 500)
+    print(y.shape)

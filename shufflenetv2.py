@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torchvision.models.utils import load_state_dict_from_url
-
+import time
 
 __all__ = [
     'ShuffleNetV2', 'shufflenet_v2_x0_5', 'shufflenet_v2_x1_0',
@@ -206,3 +206,18 @@ def shufflenet_v2_x2_0(pretrained=False, progress=True, **kwargs):
     """
     return _shufflenetv2('shufflenetv2_x2.0', pretrained, progress,
                          [4, 8, 4], [24, 244, 488, 976, 2048], **kwargs)
+
+if __name__ == '__main__':
+    x = torch.randn(1, 3, 550, 550).cuda()
+    net = shufflenet_v2_x1_0(False).cuda()
+    net.eval()
+    total_time = 0
+    for _ in range(500):
+        torch.cuda.synchronize()
+        start = time.time()
+        y = net(x)
+        torch.cuda.synchronize()
+        end = time.time()
+        total_time += (end - start)
+    print("avg time:", (total_time / 500))
+    print(y.shape)

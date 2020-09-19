@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import time
 from torchvision.models.utils import load_state_dict_from_url
 
 
@@ -347,3 +348,18 @@ def wide_resnet101_2(pretrained=False, progress=True, **kwargs):
     kwargs['width_per_group'] = 64 * 2
     return _resnet('wide_resnet101_2', Bottleneck, [3, 4, 23, 3],
                    pretrained, progress, **kwargs)
+
+if __name__ == '__main__':
+    x = torch.randn(1, 3, 550, 550).cuda()
+    net = resnet50(False).cuda()
+    net.eval()
+    total_time = 0
+    for _ in range(500):
+        torch.cuda.synchronize()
+        start = time.time()
+        y = net(x)
+        torch.cuda.synchronize()
+        end = time.time()
+        total_time += (end - start)
+    print("avg time:", total_time / 500)
+    print(y.shape)

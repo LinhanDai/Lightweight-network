@@ -1,6 +1,7 @@
 import torch.nn as nn
 import math
 import torch
+import time
 
 def conv_bn(inp, oup, stride):
     return nn.Sequential(
@@ -137,4 +138,16 @@ def mobilenet_v2(pretrained=True):
 
 
 if __name__ == '__main__':
-    net = mobilenet_v2(True)
+    x = torch.randn(1, 3, 400, 400).cuda()
+    net = mobilenet_v2(True).cuda()
+    net.eval()
+    total_time = 0
+    for _ in range(500):
+        torch.cuda.synchronize()
+        start = time.time()
+        y = net(x)
+        torch.cuda.synchronize()
+        end = time.time()
+        total_time += (end - start)
+    print("avg time:", total_time / 500)
+    print(y.shape)
